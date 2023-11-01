@@ -44,16 +44,23 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-typedef struct _wavefile {
-  unsigned char riff_tag[4];
-  unsigned char pad[4];
-  unsigned char wave_tag[4];
-} WAVEFILE;
-
 /* USER CODE BEGIN PV */
-extern unsigned char _binary_klassiskt_wav_start[];
-extern unsigned int _binary_klassiskt_wav_size;
+extern unsigned char* _binary_klassiskt_wav_start;
 
+typedef struct _wavefile {
+  unsigned char ckid_riff[4];
+  unsigned int cksize;
+  unsigned char ckid_wave[4];
+  unsigned int samplesize;
+  unsigned short wFormatTag;
+  unsigned short nChannels;
+  unsigned int nSamplesPerSec;
+  unsigned int nAvgBytesPerSec;
+  unsigned short nBlockAlign;
+  unsigned short wBitsPerSample;
+  unsigned char ckid_data[4];
+  unsigned int datasize;
+} WAVEFILE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,7 +86,8 @@ void udp_recv_fn_callback(void *arg, struct udp_pcb *pcb, struct pbuf *p, const 
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  WAVEFILE* wav_file = (WAVEFILE*)(&_binary_klassiskt_wav_start);
+  unsigned char* wav_data_start = (unsigned char*)((&_binary_klassiskt_wav_start) + 44);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,7 +117,7 @@ int main(void)
   // testa USART
 
   //uint8_t hello[] = "Hello World\r\n";
-  HAL_UART_Transmit_IT(&huart3, (unsigned char*)(_binary_klassiskt_wav_start), 30);
+  HAL_UART_Transmit_IT(&huart3, wav_file->ckid_riff, 4);
     
   /* USER CODE END 2 */
 
