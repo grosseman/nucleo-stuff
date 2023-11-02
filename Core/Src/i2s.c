@@ -52,7 +52,7 @@ void MX_I2S2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN I2S2_Init 2 */
-
+  
   /* USER CODE END I2S2_Init 2 */
 
 }
@@ -130,7 +130,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     __HAL_LINKDMA(i2sHandle,hdmatx,hdma_spi2_tx);
 
   /* USER CODE BEGIN SPI2_MspInit 1 */
-
+  
   /* USER CODE END SPI2_MspInit 1 */
   }
 }

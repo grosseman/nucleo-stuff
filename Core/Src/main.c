@@ -87,7 +87,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   WAVEFILE* wav_file = (WAVEFILE*)(&_binary_klassiskt_wav_start);
-  unsigned char* wav_data_start = (unsigned char*)((&_binary_klassiskt_wav_start) + 44);
+  uint16_t* wav_data_start = (uint16_t*)((&_binary_klassiskt_wav_start) + 44);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -96,7 +96,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -113,12 +113,12 @@ int main(void)
   MX_LWIP_Init();
   MX_I2S2_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_MspInit(&huart3);
+  HAL_I2S_MspInit(&hi2s2);
 
-  // testa USART
+  hi2s2.pTxBuffPtr = wav_data_start;
+  hi2s2.TxXferSize = wav_file->datasize;
 
-  //uint8_t hello[] = "Hello World\r\n";
-  HAL_UART_Transmit_IT(&huart3, wav_file->ckid_riff, 4);
-    
   /* USER CODE END 2 */
 
   /* Infinite loop */
