@@ -26,7 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,13 +44,15 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
 /* USER CODE BEGIN PV */
 extern unsigned char* _binary_klassiskt_wav_start;
-
+const int headerlen = 44;
 typedef struct _wavefile {
   unsigned char ckid_riff[4];
   unsigned int cksize;
   unsigned char ckid_wave[4];
+  unsigned char ckid_fmt[4];
   unsigned int samplesize;
   unsigned short wFormatTag;
   unsigned short nChannels;
@@ -61,6 +63,16 @@ typedef struct _wavefile {
   unsigned char ckid_data[4];
   unsigned int datasize;
 } WAVEFILE;
+uint8_t foo[] = "TxHalfCpltCallback0\r\n";
+uint8_t bar[] = "TxCpltCallback\r\n";
+uint8_t barz[] = "TxCpltCallFUCK\r\n";
+#define BUFSIZE 65534
+#define HBUFSIZE (BUFSIZE/2)
+uint16_t buffer[BUFSIZE];
+uint16_t* buf_ptr;
+int cnt = 0;
+  WAVEFILE* wav_file = (WAVEFILE*)(&_binary_klassiskt_wav_start);
+  uint16_t* wav_data_start = (uint16_t*)((uint32_t)(&_binary_klassiskt_wav_start) + headerlen);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,6 +89,24 @@ void udp_recv_fn_callback(void *arg, struct udp_pcb *pcb, struct pbuf *p, const 
   udp_send(pcb, p);
 }
 
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
+  //foo[18] += 1;  
+  //HAL_UART_Transmit_IT(&huart3, barz, 20);
+  //foo[18] = (foo[18] == 0x39) ? 0x30 : foo[18];  
+
+  // do buffer shit
+  memcpy(buffer, buf_ptr, HBUFSIZE*sizeof(buffer[0]));
+}
+
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
+  //HAL_UART_Transmit_IT(&huart3, bar, 17);
+  memcpy((uint16_t*)(buffer+HBUFSIZE), (uint16_t*)(buf_ptr+HBUFSIZE), HBUFSIZE*sizeof(buffer[0]));
+  buf_ptr += BUFSIZE;
+  if (buf_ptr-wav_data_start > wav_file->datasize/2) {
+    buf_ptr = wav_data_start;
+  }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -86,8 +116,6 @@ void udp_recv_fn_callback(void *arg, struct udp_pcb *pcb, struct pbuf *p, const 
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  WAVEFILE* wav_file = (WAVEFILE*)(&_binary_klassiskt_wav_start);
-  uint16_t* wav_data_start = (uint16_t*)((&_binary_klassiskt_wav_start) + 44);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -113,12 +141,12 @@ int main(void)
   MX_LWIP_Init();
   MX_I2S2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_MspInit(&huart3);
+  //HAL_UART_MspInit(&huart3);
   HAL_I2S_MspInit(&hi2s2);
 
-  hi2s2.pTxBuffPtr = wav_data_start;
-  hi2s2.TxXferSize = wav_file->datasize;
-
+  memcpy(buffer, wav_data_start, BUFSIZE);
+  HAL_I2S_Transmit_DMA(&hi2s2, buffer, BUFSIZE);
+  buf_ptr = (uint16_t*)(wav_data_start+BUFSIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */

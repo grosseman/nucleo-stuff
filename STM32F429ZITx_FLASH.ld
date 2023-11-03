@@ -182,13 +182,6 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
-  /* section for wav file */
-  .wav : 
-  {
-    . = ALIGN(4);
-    klassiskt.o
-  } >FLASH
-
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :
   {
@@ -200,7 +193,11 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  
+    .wav : 
+  {
+    . = ALIGN(4);
+    klassiskt.o
+  } >FLASH
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
@@ -211,7 +208,6 @@ SECTIONS
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
-       
 }
 
 
